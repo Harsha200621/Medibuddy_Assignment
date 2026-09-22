@@ -6,45 +6,46 @@ function Card({ drug }) {
   const info = drug.openfda || {};
 
   const brand = info.brand_name ? info.brand_name[0] : 'Unknown Brand';
-  const generic = info.generic_name ? info.generic_name[0] : 'N/A';
-  const manufacturer = info.manufacturer_name ? info.manufacturer_name[0] : 'Unknown Manufacturer';
+  const generic = info.generic_name ? info.generic_name[0] : 'Not specified';
+  const manufacturer = info.manufacturer_name ? info.manufacturer_name[0] : 'Not specified';
   const route = info.route ? info.route.join(', ') : 'Not specified';
-  const productType = info.product_type ? info.product_type[0] : '';
+  const productType = info.product_type ? info.product_type[0] : 'Prescription / OTC';
 
   const handleClick = () => {
-    // Pass drug in location state so detail page doesn't need immediate refetch
     navigate(`/drug/${drug.id}`, { state: { drug } });
   };
 
   return (
-    <div
-      onClick={handleClick}
-      style={{
-        background: '#fff',
-        border: '1px solid #e5e7eb',
-        borderRadius: '8px',
-        padding: '16px',
-        marginBottom: '12px',
-        cursor: 'pointer',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <h3 style={{ fontSize: '18px', color: '#1f2937' }}>{brand}</h3>
-        {productType && (
-          <span style={{ fontSize: '12px', background: '#e5e7eb', padding: '2px 8px', borderRadius: '4px', height: 'fit-content' }}>
-            {productType}
-          </span>
-        )}
+    <div className="drug-card" onClick={handleClick}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '10px' }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#0f172a', lineHeight: 1.3 }}>
+          {brand}
+        </h3>
+        <span className="badge">{productType}</span>
       </div>
-      <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '4px' }}>
-        <strong>Generic:</strong> {generic}
-      </p>
-      <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '4px' }}>
-        <strong>Manufacturer:</strong> {manufacturer}
-      </p>
-      <p style={{ fontSize: '13px', color: '#6b7280' }}>
-        <strong>Route:</strong> {route}
-      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px' }}>
+        <p style={{ color: '#334155' }}>
+          <span style={{ color: '#64748b', fontWeight: '500' }}>Generic: </span>
+          <span style={{ fontWeight: '500' }}>{generic}</span>
+        </p>
+        <p style={{ color: '#334155' }}>
+          <span style={{ color: '#64748b', fontWeight: '500' }}>Manufacturer: </span>
+          {manufacturer}
+        </p>
+        <p style={{ color: '#334155' }}>
+          <span style={{ color: '#64748b', fontWeight: '500' }}>Route: </span>
+          <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>
+            {route}
+          </span>
+        </p>
+      </div>
+
+      <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
+        <span style={{ fontSize: '13px', color: '#2563eb', fontWeight: '600' }}>
+          View Label Details →
+        </span>
+      </div>
     </div>
   );
 }

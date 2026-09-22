@@ -1,3 +1,4 @@
+// src/api.js
 const cache = {};
 
 export async function searchDrugs(query, signal) {
@@ -8,6 +9,7 @@ export async function searchDrugs(query, signal) {
     return cache[cleanQuery];
   }
 
+  // Exact openfda brand_name search as specified in the assignment
   const url = `https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${encodeURIComponent(cleanQuery)}"&limit=20`;
 
   try {
@@ -20,7 +22,7 @@ export async function searchDrugs(query, signal) {
     }
 
     if (!res.ok) {
-      throw new Error("Failed to fetch data from FDA API");
+      throw new Error(`API returned status ${res.status}`);
     }
 
     const data = await res.json();
@@ -28,8 +30,8 @@ export async function searchDrugs(query, signal) {
     cache[cleanQuery] = list;
     return list;
   } catch (err) {
-    if (err.name === "AbortError") {
-      return null; // aborted request
+    if (err.name === 'AbortError') {
+      return null; // Don't throw on abort
     }
     throw err;
   }
@@ -41,13 +43,17 @@ export async function getDrugById(id, signal) {
   if (cache[cacheKey]) return cache[cacheKey];
 
   const url = `https://api.fda.gov/drug/label.json?search=id:"${encodeURIComponent(id)}"&limit=1`;
-  const res = await fetch(url, { signal });
+  try {
+    const res = await fetch(url, { signal });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error("Could not load details");
 
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error("Could not load medicine details");
-
-  const data = await res.json();
-  const item = data.results?.[0] || null;
-  if (item) cache[cacheKey] = item;
-  return item;
+    const data = await res.json();
+    const item = data.results?.[0] || null;
+    if (item) cache[cacheKey] = item;
+    return item;
+  } catch (err) {
+    if (err.name === 'AbortError') return null;
+    throw err;
+  }
 }
