@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Card from '../components/card';
 import { searchDrugs } from '../api';
 
+const QUICK_TAGS = ['Advil', 'Tylenol', 'Amoxicillin', 'Lipitor', 'Metformin'];
+
 export default function Home() {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -13,7 +15,6 @@ export default function Home() {
     const timer = setTimeout(() => {
       setDebouncedQuery(query);
     }, 350);
-
     return () => clearTimeout(timer);
   }, [query]);
 
@@ -38,7 +39,7 @@ export default function Home() {
       })
       .catch((err) => {
         if (err.name !== 'AbortError') {
-          setError(err.message || 'Error connecting to FDA database');
+          setError(err.message || 'Error connecting to openFDA');
           setLoading(false);
         }
       });
@@ -47,74 +48,84 @@ export default function Home() {
   }, [debouncedQuery]);
 
   return (
-    <div className="container">
-      {/* Header */}
-      <header style={{ marginBottom: '28px', textAlign: 'center' }}>
-        <div style={{ display: 'inline-block', padding: '4px 12px', background: '#e0f2fe', color: '#0369a1', borderRadius: '20px', fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>
-          OpenFDA Label Explorer
+    <div className="app-wrapper">
+      {/* Brand Header */}
+      <header className="app-header">
+        <div className="logo-badge">
+          <div className="logo-dot"></div>
+          RxRegistry
         </div>
-        <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.5px' }}>
-          Medicine Database
-        </h1>
-        <p style={{ color: '#64748b', fontSize: '15px', marginTop: '4px' }}>
-          Instant search for FDA-registered formulations, dosages, and warnings
-        </p>
+        <span style={{ fontSize: '12px', color: '#64748b', background: '#f1f5f9', padding: '4px 10px', borderRadius: '6px' }}>
+          openFDA Endpoint
+        </span>
       </header>
 
-      {/* Search Bar */}
-      <div className="search-wrapper">
+      {/* Hero Search Section */}
+      <div className="search-container">
         <input
           type="text"
-          className="search-input"
-          placeholder="Search by brand name (e.g. Advil, Tylenol, Aspirin)..."
+          className="search-input-field"
+          placeholder="Search by brand name..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
+        <div className="quick-tags">
+          <span>Popular searches:</span>
+          {QUICK_TAGS.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              className="pill-tag"
+              onClick={() => setQuery(tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Loading */}
+      {/* Loading Indicator */}
       {loading && (
-        <div style={{ textAlign: 'center', padding: '36px 0', color: '#64748b' }}>
-          <div style={{ display: 'inline-block', width: '20px', height: '20px', border: '2px solid #cbd5e1', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 0.6s linear infinite', marginBottom: '8px' }} />
-          <p style={{ fontSize: '14px' }}>Searching FDA database...</p>
+        <div style={{ textAlign: 'center', padding: '40px 0', color: '#0d9488', fontSize: '14px', fontWeight: '500' }}>
+          Querying openFDA label records...
         </div>
       )}
 
-      {/* Error */}
+      {/* Error state */}
       {error && !loading && (
-        <div style={{ padding: '14px 18px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#b91c1c', fontSize: '14px', marginBottom: '16px' }}>
-          <strong>Error: </strong> {error}
+        <div style={{ padding: '14px 18px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', color: '#991b1b', fontSize: '14px', marginBottom: '16px' }}>
+          {error}
         </div>
       )}
 
-      {/* Empty Search Prompt */}
+      {/* Initial Empty State */}
       {!loading && !error && !debouncedQuery.trim() && (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#94a3b8' }}>
-          <p style={{ fontSize: '15px' }}>Start typing a medicine brand name above to view details.</p>
+        <div style={{ textAlign: 'center', padding: '60px 16px', color: '#94a3b8' }}>
+          <p style={{ fontSize: '15px' }}>Type a brand name or select a popular formulation tag above.</p>
         </div>
       )}
 
-      {/* No Results */}
+      {/* Zero Match State */}
       {!loading && !error && debouncedQuery.trim() && results.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '48px 16px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          <p style={{ fontSize: '16px', fontWeight: '600', color: '#1e293b' }}>
-            No medicines found matching "{debouncedQuery}"
-          </p>
-          <p style={{ fontSize: '14px', color: '#64748b', marginTop: '6px' }}>
-            Try searching for well-known brand names like <em>Advil</em>, <em>Lipitor</em>, or <em>Amoxicillin</em>.
-          </p>
+        <div style={{ textAlign: 'center', padding: '40px 16px', background: '#ffffff', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+          <p style={{ fontSize: '16px', fontWeight: '600', color: '#1e293b' }}>No label records found for "{debouncedQuery}"</p>
+          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '6px' }}>Verify spelling or try searching another commercial drug brand.</p>
         </div>
       )}
 
-      {/* Results List */}
+      {/* Results Grid */}
       {!loading && results.length > 0 && (
         <div>
-          <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px', fontWeight: '500' }}>
-            Showing {results.length} FDA label record{results.length > 1 ? 's' : ''}
-          </p>
-          {results.map((item, index) => (
-            <Card key={item.id || index} drug={item} />
-          ))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: '#475569' }}>
+              {results.length} Formulations Returned
+            </span>
+          </div>
+          <div className="results-grid">
+            {results.map((item, index) => (
+              <Card key={item.id || index} drug={item} />
+            ))}
+          </div>
         </div>
       )}
     </div>

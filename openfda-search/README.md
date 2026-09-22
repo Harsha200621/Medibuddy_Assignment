@@ -1,16 +1,35 @@
-# React + Vite
+# FDA Medicine Search
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A fast, responsive web application to search and inspect FDA-approved medicine labels using the OpenFDA Drug Label API. Built with React and React Router.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Live Demo & Repository
+- **Live URL:** [Insert your deployed Netlify/Vercel link here]
+- **GitHub Repository:** [Insert your repository link here]
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
+- **Instant Search with Debouncing:** Delays API calls by 350ms to prevent spamming requests on every keystroke.
+- **In-Memory Caching:** Automatically caches responses for searched terms and unique drug IDs to deliver instant results on repeated lookups without unnecessary network round trips.
+- **Request Cancellation:** Integrates `AbortController` in `useEffect` cleanup routines to prevent race conditions and ensure slow responses never overwrite newer queries.
+- **Resilient Route Navigation:** Detail pages load directly from router memory when accessed from the search feed, but gracefully re-fetch details using OpenFDA ID queries when refreshed or accessed directly via URL.
+- **Robust Error & Empty Handling:** Distinguishes between network failures, pending loading states, and OpenFDA 404 responses (handling zero-match searches smoothly).
+- **Responsive Layout:** Clean, accessible clinical UI built from scratch using pure CSS and responsive flex/grid layouts.
 
-## Expanding the Oxlint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Architecture & Component Structure
+
+```text
+src/
+├── api.js                 # API service, caching layer, and AbortSignal handling
+├── App.jsx                # Route definitions (/ and /drug/:id)
+├── index.css              # Custom styling, responsive variables, animations
+├── main.jsx               # Application root wrapped in BrowserRouter
+├── components/
+│   └── Card.jsx           # Memoized card displaying safe openfda metadata
+└── pages/
+    ├── Home.jsx           # Search input, debounce state, and result list
+    └── Details.jsx        # Detailed view with fallback network fetching
